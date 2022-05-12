@@ -5,14 +5,16 @@ import random
 
 random.seed(2020)
 np.random.seed(2020)
-tf.random.set_random_seed(2020)
+#tf.random.set_random_seed(2020) 
+tf.random.set_seed(2020) 
 
 from keras.layers import Input, Add, Average, Dense, LSTM, Lambda, TimeDistributed, Concatenate, Embedding
 from keras.initializers import he_uniform
 from keras.regularizers import l1
 
 from keras.models import Sequential, Model
-from keras.optimizers import Adam
+#from keras.optimizers import Adam
+from tensorflow.keras.optimizers import Adam # - Works
 from keras.preprocessing.sequence import pad_sequences
 
 from losses import d_bce_loss, trajLoss
@@ -175,11 +177,11 @@ class LSTM_TrajGAN():
                 outputs.append(output)
                 
         return Model(inputs=inputs, outputs=outputs)
-
+    
     def train(self, epochs=200, batch_size=256, sample_interval=10):
         
         # Training data
-        x_train = np.load('data/final_train.npy',allow_pickle=True)
+        x_train = np.load('data/final_train_tapas.npy',allow_pickle=True)
         self.x_train = x_train
 
         # Padding zero to reach the maxlength
@@ -232,7 +234,7 @@ class LSTM_TrajGAN():
             # Mask and noise are used
             noise = np.random.normal(0, 1, (batch_size, self.latent_dim))
             real_trajs_bc[5] = noise
-            g_loss = self.combined.train_on_batch(real_trajs_bc, real_bc)
+            g_loss = 0 #self.combined.train_on_batch(real_trajs_bc, real_bc) #TODO
             
             print("[%d/%d] D Loss: %f | G Loss: %f" % (epoch, epochs, d_loss[0], g_loss))
 
@@ -243,53 +245,53 @@ class LSTM_TrajGAN():
         
         # Training the model
         # The regular training loop that trains on all samples (multiple batches) per epoch
-#         for epoch in range(1,epochs+1):
+        # for epoch in range(1,epochs+1):
             
-#             random_indices = np.random.permutation(X_train[0].shape[0])
+        #     random_indices = np.random.permutation(X_train[0].shape[0])
             
-#             num_batches = np.ceil(random_indices.shape[0]/batch_size).astype(np.int)
+        #     num_batches = np.ceil(random_indices.shape[0]/batch_size).astype(np.int)
             
-#             for i in range(num_batches):
+        #     for i in range(num_batches):
             
-#                 # Select a random batch of real trajectories
-#                 idx = random_indices[batch_size*i:batch_size*(i+1)]
+        #         Select a random batch of real trajectories
+        #         idx = random_indices[batch_size*i:batch_size*(i+1)]
                 
-#                 # Ground truths for real trajectories and synthetic trajectories
-#                 real_bc = np.ones((idx.shape[0], 1))
-#                 syn_bc = np.zeros((idx.shape[0], 1))
+        #         Ground truths for real trajectories and synthetic trajectories
+        #         real_bc = np.ones((idx.shape[0], 1))
+        #         syn_bc = np.zeros((idx.shape[0], 1))
                 
-#                 # Random noise
-#                 noise = np.random.normal(0, 1, (idx.shape[0], self.latent_dim))
+        #         Random noise
+        #         noise = np.random.normal(0, 1, (idx.shape[0], self.latent_dim))
 
-#                 real_trajs_bc = []
-#                 real_trajs_bc.append(X_train[0][idx]) # latlon
-#                 real_trajs_bc.append(X_train[1][idx]) # day
-#                 real_trajs_bc.append(X_train[2][idx]) # hour
-#                 real_trajs_bc.append(X_train[3][idx]) # category
-#                 real_trajs_bc.append(X_train[4][idx]) # mask
-#                 real_trajs_bc.append(noise) # random noise
+        #         real_trajs_bc = []
+        #         real_trajs_bc.append(X_train[0][idx]) # latlon
+        #         real_trajs_bc.append(X_train[1][idx]) # day
+        #         real_trajs_bc.append(X_train[2][idx]) # hour
+        #         real_trajs_bc.append(X_train[3][idx]) # category
+        #         real_trajs_bc.append(X_train[4][idx]) # mask
+        #         real_trajs_bc.append(noise) # random noise
 
-#                 # Generate a batch of synthetic trajectories
-#                 gen_trajs_bc = self.generator.predict(real_trajs_bc)
+        #         Generate a batch of synthetic trajectories
+        #         gen_trajs_bc = self.generator.predict(real_trajs_bc)
 
-#                 # Train the discriminator
-#                 # No mask and noise are used
-#                 d_loss_real = self.discriminator.train_on_batch(real_trajs_bc[:4], real_bc)
-#                 d_loss_syn = self.discriminator.train_on_batch(gen_trajs_bc[:4], syn_bc)
-#                 d_loss = 0.5 * np.add(d_loss_real, d_loss_syn)
+        #         Train the discriminator
+        #         No mask and noise are used
+        #         d_loss_real = self.discriminator.train_on_batch(real_trajs_bc[:4], real_bc)
+        #         d_loss_syn = self.discriminator.train_on_batch(gen_trajs_bc[:4], syn_bc)
+        #         d_loss = 0.5 * np.add(d_loss_real, d_loss_syn)
 
-#                 # Train the generator
-#                 # Mask and noise are used
-#                 noise = np.random.normal(0, 1, (idx.shape[0], self.latent_dim))
-#                 real_trajs_bc[5] = noise
-#                 g_loss = self.combined.train_on_batch(real_trajs_bc, real_bc)
+        #         Train the generator
+        #         Mask and noise are used
+        #         noise = np.random.normal(0, 1, (idx.shape[0], self.latent_dim))
+        #         real_trajs_bc[5] = noise
+        #         g_loss = self.combined.train_on_batch(real_trajs_bc, real_bc)
 
-#                 # Print the losses
-#                 print("[Epoch %d/%d] [Batch %d/%d] D Loss: %f | G Loss: %f" % (epoch, epochs, i+1, num_batches, d_loss[0], g_loss))
-#             # Save the params
-#             if epoch % sample_interval == 0:
-#                 self.save_checkpoint(epoch)
-#                 print('Model params saved to the disk.')
+        #         Print the losses
+        #         print("[Epoch %d/%d] [Batch %d/%d] D Loss: %f | G Loss: %f" % (epoch, epochs, i+1, num_batches, d_loss[0], g_loss))
+        #     Save the params
+        #     if epoch % sample_interval == 0:
+        #         self.save_checkpoint(epoch)
+        #         print('Model params saved to the disk.')
     
     def save_checkpoint(self, epoch):
         self.combined.save_weights("training_params/C_model_"+str(epoch)+".h5")

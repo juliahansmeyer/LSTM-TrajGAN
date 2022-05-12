@@ -119,7 +119,7 @@ def get_trajectories(train_file, test_file, tid_col='tid',
 
     one_hot_y = OneHotEncoder().fit(df.loc[:, [label_col]])
 
-    x = [np.asarray(f) for f in x]
+    x = [np.asarray(f, dtype=object) for f in x]
     y = one_hot_y.transform(pd.DataFrame(y)).toarray()
     logger.log(Logger.INFO, "Loading data from files " + file_str + "... DONE!")
     
@@ -171,7 +171,8 @@ from keras.models import Model
 from keras.layers import Dense, LSTM, GRU, Dropout
 from keras.initializers import he_uniform
 from keras.regularizers import l1
-from keras.optimizers import Adam
+#from keras.optimizers import Adam
+from tensorflow.keras.optimizers import Adam # - Works
 from keras.layers import Input, Add, Average, Concatenate, Embedding
 from keras.callbacks import EarlyStopping
 from MARC.core.utils.metrics import compute_acc_acc5_f1_prec_rec
@@ -285,7 +286,7 @@ softmax = Dense(units=num_classes,
                 activation='softmax')(rnn_dropout)
 
 classifier = Model(inputs=inputs, outputs=softmax)
-opt = Adam(lr=CLASS_LRATE)
+opt = Adam(learning_rate=CLASS_LRATE)
 
 classifier.compile(optimizer=opt,
                    loss='categorical_crossentropy',

@@ -20,9 +20,9 @@ def trajLoss(real_traj, gen_traj):
         masked_latlon_full = keras.backend.sum(keras.backend.sum(tf.multiply(tf.multiply((gen_traj[0]-real_traj[0]),(gen_traj[0]-real_traj[0])),tf.concat([real_traj[4] for x in range(2)],axis=2)),axis=1),axis=1,keepdims=True)
         masked_latlon_mse = keras.backend.sum(tf.math.divide(masked_latlon_full,traj_length))
         
-        ce_category = tf.nn.softmax_cross_entropy_with_logits_v2(gen_traj[1],real_traj[1])
-        ce_day = tf.nn.softmax_cross_entropy_with_logits_v2(gen_traj[2],real_traj[2])
-        ce_hour = tf.nn.softmax_cross_entropy_with_logits_v2(gen_traj[3],real_traj[3])
+        ce_category = tf.nn.softmax_cross_entropy_with_logits(gen_traj[1],real_traj[1])
+        ce_day = tf.nn.softmax_cross_entropy_with_logits(gen_traj[2],real_traj[2])
+        ce_hour = tf.nn.softmax_cross_entropy_with_logits(gen_traj[3],real_traj[3])
         
         ce_category_masked = tf.multiply(ce_category,keras.backend.sum(real_traj[4],axis=2))
         ce_day_masked = tf.multiply(ce_day,keras.backend.sum(real_traj[4],axis=2))

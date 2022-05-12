@@ -15,8 +15,8 @@ if __name__ == '__main__':
     keys = ['lat_lon', 'day', 'hour', 'category', 'mask']
     vocab_size = {"lat_lon":2,"day":7,"hour":24,"category":10,"mask":1}
     
-    tr = pd.read_csv('data/train_latlon.csv')
-    te = pd.read_csv('data/test_latlon.csv')
+    tr = pd.read_csv('data/train_latlon_tapas.csv')
+    te = pd.read_csv('data/test_latlon_tapas.csv')
     
     lat_centroid = (tr['lat'].sum() + te['lat'].sum())/(len(tr)+len(te))
     lon_centroid = (tr['lon'].sum() + te['lon'].sum())/(len(tr)+len(te))
@@ -35,14 +35,13 @@ if __name__ == '__main__':
     gan = LSTM_TrajGAN(latent_dim, keys, vocab_size, max_length, lat_centroid, lon_centroid, scale_factor)
     
     # Test data
-    x_test = np.load('data/final_test.npy',allow_pickle=True)
-    
+    x_test = np.load('data/final_test_tapas.npy',allow_pickle=True)
+    print(x_test.shape)
     x_test = [x_test[0],x_test[1],x_test[2],x_test[3],x_test[4],x_test[5].reshape(-1,1),x_test[6].reshape(-1,1)]
     X_test = [pad_sequences(f, max_length, padding='pre', dtype='float64') for f in x_test[:5]]
-    
     # Add random noise to the data
-    noise = np.random.normal(0, 1, (1027, 100))
-    X_test.append(noise)
+    #noise = np.random.normal(0, 1, (1027, 100))
+    #X_test.append(noise)
     
     # Load params for the generator
     gan.generator.load_weights('training_params/G_model_' + str(n_epochs) + '.h5') # params/G_model_2000.h5
@@ -64,7 +63,7 @@ if __name__ == '__main__':
         traj_attr_concat_list.append(traj_attr_concat)
     traj_data = np.concatenate(traj_attr_concat_list,axis=1)
     
-    df_test = pd.read_csv('data/dev_test_encoded_final.csv')
+    df_test = pd.read_csv('data/dev_test_encoded_final_tapas.csv')
     label = np.array(df_test['label']).reshape(-1,1)
     tid = np.array(df_test['tid']).reshape(-1,1)
     traj_data = np.concatenate([label,tid,traj_data],axis=1)
@@ -85,7 +84,7 @@ if __name__ == '__main__':
     df_traj_fin['label'] = df_traj_fin['label'].astype(np.int32)
     
     # Save synthetic trajectory data
-    df_traj_fin.to_csv('results/syn_traj_test.csv',index=False)
+    df_traj_fin.to_csv('results/synthetic_tapas.csv',index=False)
     
     
     
