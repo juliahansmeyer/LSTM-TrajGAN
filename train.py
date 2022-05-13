@@ -10,7 +10,7 @@ if __name__ == '__main__':
     n_sample_interval = int(sys.argv[3])
     
     latent_dim = 100
-    max_length = 144
+    #max_length = 144
     
     keys = ['lat_lon', 'day', 'hour', 'category', 'mask']
     vocab_size = {"lat_lon":2,"day":7,"hour":24,"category":10,"mask":1}
@@ -31,6 +31,23 @@ if __name__ == '__main__':
                          abs(tr['lon'].min() - lon_centroid),
                          abs(te['lon'].min() - lon_centroid),
                         ))
+    
+    x_test = np.load('data/final_test_original.npy',allow_pickle=True)
+    x_train = np.load('data/final_train_tapas.npy',allow_pickle=True)
+    
+    max_length=0
+    for x in range(0, len(x_test[0])):
+        if max_length < len(x_test[0][x]):
+            max_length = len(x_test[0][x])
+        else:
+            pass
+    for x in range(0, len(x_train[0])):
+        if max_length < len(x_train[0][x]):
+            max_length = len(x_train[0][x])
+        else:
+            pass
+
+    print('Max length: ', max_length)
 
     gan = LSTM_TrajGAN(latent_dim, keys, vocab_size, max_length, lat_centroid, lon_centroid, scale_factor)
     

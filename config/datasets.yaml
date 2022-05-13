@@ -1,0 +1,7 @@
+geojson_path: '/Users/jh/github/LSTM-TrajGAN/results/synthetic.geojson'
+geojson_str: 'Synthetic data Geojson file'
+geojson_name: 'synthetic_geojson'
+
+synthetic_csv_path: '/Users/jh/github/LSTM-TrajGAN/results/syn_traj_test.csv'
+synthetic_csv_str: 'Synthetic data CSV file'
+synthetic_csv_name: 'synthetic_csv'

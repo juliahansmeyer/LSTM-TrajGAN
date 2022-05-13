@@ -10,8 +10,8 @@ if __name__ == '__main__':
     n_epochs = int(sys.argv[1])
     
     latent_dim = 100
-    max_length = 144
-    
+    #max_length = 144
+
     keys = ['lat_lon', 'day', 'hour', 'category', 'mask']
     vocab_size = {"lat_lon":2,"day":7,"hour":24,"category":10,"mask":1}
     
@@ -32,36 +32,54 @@ if __name__ == '__main__':
                          abs(te['lon'].min() - lon_centroid),
                         ))
     
+    x_test = np.load('data/final_test_tapas.npy',allow_pickle=True)
+    x_train = np.load('data/final_train_tapas.npy',allow_pickle=True)
+    max_length=0
+    for x in range(0, len(x_test[0])):
+        if max_length < len(x_test[0][x]):
+            max_length = len(x_test[0][x])
+        else:
+            pass
+    for x in range(0, len(x_train[0])):
+        if max_length < len(x_train[0][x]):
+            max_length = len(x_train[0][x])
+        else:
+            pass
+
     gan = LSTM_TrajGAN(latent_dim, keys, vocab_size, max_length, lat_centroid, lon_centroid, scale_factor)
     
     # Test data
     x_test = np.load('data/final_test_tapas.npy',allow_pickle=True)
-    print(x_test.shape)
+    shape = x_test.shape[1]
+    print('Amount of synthetic trajectories: ', shape)
     x_test = [x_test[0],x_test[1],x_test[2],x_test[3],x_test[4],x_test[5].reshape(-1,1),x_test[6].reshape(-1,1)]
     X_test = [pad_sequences(f, max_length, padding='pre', dtype='float64') for f in x_test[:5]]
     # Add random noise to the data
-    #noise = np.random.normal(0, 1, (1027, 100))
-    #X_test.append(noise)
-    
+    noise = np.random.normal(0, 1, (shape, 100))
+    X_test.append(noise)
     # Load params for the generator
     gan.generator.load_weights('training_params/G_model_' + str(n_epochs) + '.h5') # params/G_model_2000.h5
     
     # Make predictions
     prediction = gan.generator.predict(X_test)
-    
     traj_attr_concat_list = []
     for attributes in prediction:
+        print('Amount of synthetic trajectories: ', attributes.shape)
         traj_attr_list = []
         idx = 0
         for row in attributes:
             if row.shape == (max_length, 2):
+                #print('Row shape',row.shape)
+                #print('maxlength-xtest',max_length-x_test[6][idx][0])
                 traj_attr_list.append(row[max_length-x_test[6][idx][0]:])
             else:
+                #print('Row shape else: ', row.shape)
                 traj_attr_list.append(np.argmax(row[max_length-x_test[6][idx][0]:],axis=1).reshape(x_test[6][idx][0],1))
             idx += 1
         traj_attr_concat = np.concatenate(traj_attr_list)
         traj_attr_concat_list.append(traj_attr_concat)
     traj_data = np.concatenate(traj_attr_concat_list,axis=1)
+    print(traj_data)
     
     df_test = pd.read_csv('data/dev_test_encoded_final_tapas.csv')
     label = np.array(df_test['label']).reshape(-1,1)

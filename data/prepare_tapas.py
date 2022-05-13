@@ -2,7 +2,7 @@ import pandas as pd
 import argparse
 import random
 import numpy as np
-from csv2npy import data_conversion
+from csv2npy import data_conversion, data_conversion_test
 pd.options.mode.chained_assignment = None
 
 
@@ -26,7 +26,7 @@ def tapas_to_csv(df):
     df['day'] = day
     df['hour'] = hour
     df['category'] = category
-    df = df[['lat', 'lon', 'day', 'hour', 'category','label','tid']]
+    df = df[['lat', 'lon', 'day', 'hour', 'category','tid', 'label']]
 
     #train test split
     trip_ids = df[['tid']].values
@@ -59,13 +59,13 @@ if __name__ == '__main__':
     parser.add_argument("--save_path", type=str, default="/Users/jh/github/LSTM-TrajGAN/data/")
     args = parser.parse_args()
     
-    tapas_df = pd.read_csv('/Users/jh/github/freemove/data/TAPAS/tapas_big_single_coordinates.csv')
+    tapas_df = pd.read_csv('/Users/jh/github/freemove/data/TAPAS/tapas_single_coordinates.csv')
     tapas_to_csv(tapas_df)
 
     df_train = pd.read_csv('/Users/jh/github/LSTM-TrajGAN/data/dev_train_encoded_final_tapas.csv')
     df_test = pd.read_csv('/Users/jh/github/LSTM-TrajGAN/data/dev_test_encoded_final_tapas.csv')
     converted_data_train = data_conversion(df_train, 'tid')
-    converted_data_test = data_conversion(df_test, 'tid')
+    converted_data_test = data_conversion_test(df_test, 'tid')
 
     np.save(args.save_path+'final_train_tapas.npy', converted_data_train)
     np.save(args.save_path+'final_test_tapas.npy', converted_data_test)
